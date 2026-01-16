@@ -197,8 +197,7 @@ exports.createTable = async (req, res) => {
     }
 
     // Generate QR URL
-    // Assuming client runs on port 5173 locally. In prod, use env var.
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const clientUrl = process.env.CLIENT_URL || req.get('origin') || 'http://localhost:5173';
     const qrCodeUrl = `${clientUrl}/feedback/${req.user.restaurant}/${number}`;
 
     const table = await Table.create({

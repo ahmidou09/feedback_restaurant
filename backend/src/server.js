@@ -42,13 +42,21 @@ const connectDB = async () => {
     if (mongoose.connection.readyState >= 1) {
       return;
     }
-    await mongoose.connect(process.env.MONGO_URI);
+    // Optimize for serverless: fail fast if no connection, don't buffer
+    await mongoose.connect(process.env.MONGO_URI, {
+      bufferCommands: false, // Disable Mongoose buffering
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      socketTimeoutMS: 45000, // Close sockets after 45s
+    });
     console.log('MongoDB connected');
   } catch (error) {
     console.error('MongoDB connection error:', error);
     // Only exit process in local development, not in serverless environment
     if (require.main === module) {
       process.exit(1);
+    } else {
+        // Re-throw in serverless so the request fails cleanly with 500
+        throw error;
     }
   }
 };
