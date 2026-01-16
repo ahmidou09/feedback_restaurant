@@ -1,6 +1,6 @@
 import { getCurrentUser } from './authService';
 
-const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/admin` : 'http://localhost:5000/api/admin';
+const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/admin` : '/api/admin';
 
 const authHeader = () => {
   const user = getCurrentUser();
