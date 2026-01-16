@@ -4,8 +4,16 @@ const bcrypt = require('bcryptjs');
 const Restaurant = require('./src/models/Restaurant');
 const Table = require('./src/models/Table');
 const AdminUser = require('./src/models/AdminUser');
+const dns = require('dns');
 
 dotenv.config();
+
+// Fix for MongoDB connection error: querySrv ECONNREFUSED
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+} catch (error) {
+  console.warn('Failed to set DNS servers:', error);
+}
 
 const seedData = async () => {
   try {
@@ -19,16 +27,16 @@ const seedData = async () => {
 
     // 1. Create Admin
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash('password123', salt);
+    const hashedPassword = await bcrypt.hash('123456', salt);
 
     const admin = await AdminUser.create({
       username: 'admin',
-      email: 'admin@example.com',
+      email: 'a@a.com',
       password: hashedPassword,
       role: 'restaurant_admin',
     });
 
-    console.log('Admin created: admin@example.com / password123');
+    console.log('Admin created: a@a.com / 123456');
 
     // 2. Create Restaurant
     const restaurant = await Restaurant.create({
@@ -59,8 +67,8 @@ SEEDING COMPLETE
 -----------------------------------
 Feedback URL: http://localhost:5173/feedback/${restaurant._id}/1
 Admin Login: http://localhost:5173/admin/login
-Admin Email: admin@example.com
-Password: password123
+Admin Email: a@a.com
+Password: 123456
 -----------------------------------
     `;
     console.log(output);

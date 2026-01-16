@@ -7,6 +7,9 @@ const dns = require('dns');
 
 dotenv.config();
 
+// Fail fast if DB not connected (prevent 15s+ timeouts)
+mongoose.set('bufferTimeoutMS', 2500); // Throw error after 2.5s if not connected
+
 // Fix for MongoDB connection error: querySrv ECONNREFUSED
 try {
   dns.setServers(['8.8.8.8', '8.8.4.4']);

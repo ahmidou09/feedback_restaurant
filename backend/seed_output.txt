@@ -2,9 +2,9 @@
 -----------------------------------
 SEEDING COMPLETE
 -----------------------------------
-Feedback URL: http://localhost:5173/feedback/696a3a6776d8e104d638dfa7/1
+Feedback URL: http://localhost:5173/feedback/696a96b67b33601daba279fd/1
 Admin Login: http://localhost:5173/admin/login
-Admin Email: admin@example.com
-Password: password123
+Admin Email: a@a.com
+Password: 123456
 -----------------------------------
     
