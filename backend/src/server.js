@@ -36,13 +36,20 @@ app.get('/api/health', (req, res) => {
 });
 
 // Database Connection
+// Database Connection
 const connectDB = async () => {
   try {
+    if (mongoose.connection.readyState >= 1) {
+      return;
+    }
     await mongoose.connect(process.env.MONGO_URI);
     console.log('MongoDB connected');
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    process.exit(1);
+    // Only exit process in local development, not in serverless environment
+    if (require.main === module) {
+      process.exit(1);
+    }
   }
 };
 
@@ -53,7 +60,6 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-// Start Server
 if (require.main === module) {
   const startServer = async () => {
     await connectDB();
@@ -63,7 +69,8 @@ if (require.main === module) {
   };
   startServer();
 } else {
-  // For Vercel/Serverless
+  // For Vercel/Serverless: Connect but don't blocking wait indefinitely (mongoose buffers)
+  // Ensure connection is attempted
   connectDB();
   module.exports = app;
 }
