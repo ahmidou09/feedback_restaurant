@@ -53,11 +53,17 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-const startServer = async () => {
-  await connectDB();
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-};
-
-startServer();
+// Start Server
+if (require.main === module) {
+  const startServer = async () => {
+    await connectDB();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  };
+  startServer();
+} else {
+  // For Vercel/Serverless
+  connectDB();
+  module.exports = app;
+}
