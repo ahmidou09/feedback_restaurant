@@ -6,7 +6,13 @@ const dotenv = require('dotenv');
 const dns = require('dns');
 const path = require('path');
 
-dotenv.config({ path: path.join(__dirname, '../.env') });
+// Load environment variables from .env file if in local development
+// In Vercel, these are provided via process.env, so missing file is fine
+try {
+  dotenv.config({ path: path.join(__dirname, '../.env') });
+} catch (error) {
+  // Ignore error if .env file is missing
+}
 
 // Fail fast if DB not connected (prevent 15s+ timeouts)
 mongoose.set('bufferTimeoutMS', 2500); // Throw error after 2.5s if not connected
@@ -46,6 +52,12 @@ const connectDB = async () => {
     if (mongoose.connection.readyState >= 1) {
       return;
     }
+
+    if (!process.env.MONGO_URI) {
+      console.error('MONGO_URI is not defined in environment variables');
+      throw new Error('MONGO_URI is not defined');
+    }
+
     // Optimize for serverless: fail fast if no connection, don't buffer
     await mongoose.connect(process.env.MONGO_URI, {
       bufferCommands: false, // Disable Mongoose buffering
