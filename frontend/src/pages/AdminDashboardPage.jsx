@@ -10,7 +10,8 @@ import TableProblemHeatmap from '../components/admin/TableProblemHeatmap';
 import Spinner from '../components/common/LoadingSpinner';
 import { Button } from '../components/common/Button';
 import { logout } from '../services/authService';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import logo from '../assets/logo.png';
 
 const PageContainer = styled.div`
   padding-bottom: ${({ theme }) => theme.spacing.xl};
@@ -23,8 +24,18 @@ const Header = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.xl};
 `;
 
-const Title = styled.h1`
-  color: ${({ theme }) => theme.colors.text};
+const LogoButton = styled(Link)`
+  display: block;
+  transition: transform 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  img {
+    height: 50px; /* Adjust size as needed */
+    width: auto;
+  }
 `;
 
 const StatsGrid = styled.div`
@@ -116,7 +127,9 @@ const AdminDashboardPage = () => {
       </Helmet>
 
       <Header>
-        <Title>Dashboard</Title>
+        <LogoButton to="/">
+          <img src={logo} alt="Resto Logo" />
+        </LogoButton>
         <div style={{ display: 'flex', gap: '10px' }}>
           <Button onClick={() => navigate('/admin/tables')} variant="secondary">
             Manage Tables
