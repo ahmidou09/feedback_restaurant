@@ -79,6 +79,12 @@ const connectDB = async () => {
     family: 4 // Use IPv4, skip trying IPv6
   }).then((mongoose) => {
     console.log('MongoDB connected successfully');
+    
+    // Register models explicitly to ensure they are attached to this connection
+    require('./models/AdminUser');
+    require('./models/Restaurant');
+    require('./models/Feedback');
+    
     return mongoose;
   }).catch((error) => {
     console.error('MongoDB connection error:', error);
