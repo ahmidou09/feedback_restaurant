@@ -197,7 +197,7 @@ exports.createTable = async (req, res) => {
     }
 
     // Generate QR URL
-    const clientUrl = process.env.CLIENT_URL || req.get('origin') || 'http://localhost:5173';
+    const clientUrl = process.env.CLIENT_URL || req.get('origin') || 'https://feedback-restaurant.vercel.app';
     const qrCodeUrl = `${clientUrl}/feedback/${req.user.restaurant}/${number}`;
 
     const table = await Table.create({

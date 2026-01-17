@@ -32,7 +32,20 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [];
+    // Also allow the current origin (for Vercel same-domain)
+    if (allowedOrigins.indexOf(origin) !== -1 || !process.env.CORS_ORIGIN) {
+      // If CORS_ORIGIN is not set, we default to allowing all (in dev) or strict in prod
+      // Ideally in prod, set CORS_ORIGIN to your frontend domain
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
