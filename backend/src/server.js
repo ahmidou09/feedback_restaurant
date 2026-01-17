@@ -54,13 +54,14 @@ app.get('/api/health', (req, res) => {
 let cachedPromise = null;
 
 // Database Connection
+// Database Connection
 const connectDB = async () => {
-  // Check if we have a connection to the database or if it's currently connecting
   if (mongoose.connection.readyState === 1) {
     return mongoose;
   }
 
-  if (cachedPromise) {
+  // Only reuse cached promise if we are currently connecting (readyState 2)
+  if (cachedPromise && mongoose.connection.readyState === 2) {
     return cachedPromise;
   }
 
@@ -81,9 +82,18 @@ const connectDB = async () => {
     return mongoose;
   }).catch((error) => {
     console.error('MongoDB connection error:', error);
-    // Restart connection on error
     cachedPromise = null;
     throw error;
+  });
+
+  mongoose.connection.on('error', (err) => {
+    console.error('MongoDB runtime error:', err);
+    cachedPromise = null;
+  });
+
+  mongoose.connection.on('disconnected', () => {
+    console.warn('MongoDB disconnected');
+    cachedPromise = null;
   });
 
   return cachedPromise;
