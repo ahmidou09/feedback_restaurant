@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const AdminUser = require('../models/AdminUser');
+const connectDB = require('../config/db');
 
 // Generate JWT
 const generateToken = (id) => {
@@ -14,6 +15,9 @@ const generateToken = (id) => {
 // @access  Public
 exports.loginAdmin = async (req, res) => {
   try {
+    // Ensure DB is connected before query
+    await connectDB();
+
     const { email, password } = req.body;
 
     // Check for admin email

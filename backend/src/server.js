@@ -49,61 +49,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Database Connection
-// Database Connection
-// Cached connection promise
-let cachedPromise = null;
-
-// Database Connection
-// Database Connection
-const connectDB = async () => {
-  if (mongoose.connection.readyState === 1) {
-    return mongoose;
-  }
-
-  // Only reuse cached promise if we are currently connecting (readyState 2)
-  if (cachedPromise && mongoose.connection.readyState === 2) {
-    return cachedPromise;
-  }
-
-  if (!process.env.MONGO_URI) {
-    console.error('MONGO_URI is not defined in environment variables');
-    throw new Error('MONGO_URI is not defined');
-  }
-
-  console.log('Connecting to MongoDB...');
-
-  cachedPromise = mongoose.connect(process.env.MONGO_URI, {
-    bufferCommands: false, // Disable Mongoose buffering
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 45000,
-    family: 4 // Use IPv4, skip trying IPv6
-  }).then((mongoose) => {
-    console.log('MongoDB connected successfully');
-    
-    // Register models explicitly to ensure they are attached to this connection
-    require('./models/AdminUser');
-    require('./models/Restaurant');
-    require('./models/Feedback');
-    
-    return mongoose;
-  }).catch((error) => {
-    console.error('MongoDB connection error:', error);
-    cachedPromise = null;
-    throw error;
-  });
-
-  mongoose.connection.on('error', (err) => {
-    console.error('MongoDB runtime error:', err);
-    cachedPromise = null;
-  });
-
-  mongoose.connection.on('disconnected', () => {
-    console.warn('MongoDB disconnected');
-    cachedPromise = null;
-  });
-
-  return cachedPromise;
-};
+const connectDB = require('./config/db');
 
 // Global Middleware to ensure DB connection
 app.use(async (req, res, next) => {
