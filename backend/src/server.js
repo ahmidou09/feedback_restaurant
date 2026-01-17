@@ -17,11 +17,14 @@ try {
 // Fail fast if DB not connected (prevent 15s+ timeouts)
 mongoose.set('bufferTimeoutMS', 15000); // Throw error after 15s if not connected
 
-// Fix for MongoDB connection error: querySrv ECONNREFUSED
-try {
-  dns.setServers(['8.8.8.8', '8.8.4.4']);
-} catch (error) {
-  console.warn('Failed to set DNS servers:', error);
+// Fix for MongoDB connection error: querySrv ECONNREFUSED (Local Windows only)
+// Don't override DNS in Vercel/Production as it handles resolution internally
+if (!process.env.VERCEL) {
+  try {
+    dns.setServers(['8.8.8.8', '8.8.4.4']);
+  } catch (error) {
+    console.warn('Failed to set DNS servers:', error);
+  }
 }
 
 const app = express();
@@ -66,12 +69,15 @@ const connectDB = async () => {
     throw new Error('MONGO_URI is not defined');
   }
 
+  console.log('Connecting to MongoDB...');
+
   cachedPromise = mongoose.connect(process.env.MONGO_URI, {
     bufferCommands: false, // Disable Mongoose buffering
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
+    family: 4 // Use IPv4, skip trying IPv6
   }).then((mongoose) => {
-    console.log('MongoDB connected');
+    console.log('MongoDB connected successfully');
     return mongoose;
   }).catch((error) => {
     console.error('MongoDB connection error:', error);
