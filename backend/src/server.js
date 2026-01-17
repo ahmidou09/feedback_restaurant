@@ -15,7 +15,7 @@ try {
 }
 
 // Fail fast if DB not connected (prevent 15s+ timeouts)
-mongoose.set('bufferTimeoutMS', 2500); // Throw error after 2.5s if not connected
+mongoose.set('bufferTimeoutMS', 15000); // Throw error after 15s if not connected
 
 // Fix for MongoDB connection error: querySrv ECONNREFUSED
 try {
@@ -52,6 +52,11 @@ let cachedPromise = null;
 
 // Database Connection
 const connectDB = async () => {
+  // Check if we have a connection to the database or if it's currently connecting
+  if (mongoose.connection.readyState === 1) {
+    return mongoose;
+  }
+
   if (cachedPromise) {
     return cachedPromise;
   }
