@@ -4,8 +4,9 @@ const cors = require('cors');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
 const dns = require('dns');
+const path = require('path');
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 // Fail fast if DB not connected (prevent 15s+ timeouts)
 mongoose.set('bufferTimeoutMS', 2500); // Throw error after 2.5s if not connected
