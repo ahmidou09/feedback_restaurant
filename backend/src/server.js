@@ -47,35 +47,47 @@ app.get('/api/health', (req, res) => {
 
 // Database Connection
 // Database Connection
+// Cached connection promise
+let cachedPromise = null;
+
+// Database Connection
 const connectDB = async () => {
-  try {
-    if (mongoose.connection.readyState >= 1) {
-      return;
-    }
-
-    if (!process.env.MONGO_URI) {
-      console.error('MONGO_URI is not defined in environment variables');
-      throw new Error('MONGO_URI is not defined');
-    }
-
-    // Optimize for serverless: fail fast if no connection, don't buffer
-    await mongoose.connect(process.env.MONGO_URI, {
-      bufferCommands: false, // Disable Mongoose buffering
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-      socketTimeoutMS: 45000, // Close sockets after 45s
-    });
-    console.log('MongoDB connected');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    // Only exit process in local development, not in serverless environment
-    if (require.main === module) {
-      process.exit(1);
-    } else {
-        // Re-throw in serverless so the request fails cleanly with 500
-        throw error;
-    }
+  if (cachedPromise) {
+    return cachedPromise;
   }
+
+  if (!process.env.MONGO_URI) {
+    console.error('MONGO_URI is not defined in environment variables');
+    throw new Error('MONGO_URI is not defined');
+  }
+
+  cachedPromise = mongoose.connect(process.env.MONGO_URI, {
+    bufferCommands: false, // Disable Mongoose buffering
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  }).then((mongoose) => {
+    console.log('MongoDB connected');
+    return mongoose;
+  }).catch((error) => {
+    console.error('MongoDB connection error:', error);
+    // Restart connection on error
+    cachedPromise = null;
+    throw error;
+  });
+
+  return cachedPromise;
 };
+
+// Global Middleware to ensure DB connection
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    res.status(500).json({ message: 'Database connection failed' });
+  }
+});
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
@@ -86,15 +98,18 @@ app.use((err, req, res, next) => {
 // Start Server
 if (require.main === module) {
   const startServer = async () => {
-    await connectDB();
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    try {
+      await connectDB();
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    } catch (error) {
+      console.error('Failed to start server:', error);
+      process.exit(1);
+    }
   };
   startServer();
 } else {
-  // For Vercel/Serverless: Connect but don't blocking wait indefinitely (mongoose buffers)
-  // Ensure connection is attempted
-  connectDB();
+  // For Vercel/Serverless: Export app
   module.exports = app;
 }
